@@ -177,41 +177,37 @@ class _HomescreenState extends State<Homescreen> {
     });
   }
 
-  Widget body() {
-    Future<List<AppInfo>> futureListAppInfo;
+  Future<List<AppInfo>> futureListInstalledFavs() async {
     List<AppInfo> listInstalledFavs = [];
 
-    futureListAppInfo = InstalledApps.getInstalledApps(true, true);
-    Future<SharedPreferences> prefs = SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey("FavoriteApps")) {
+      favoriteApps = prefs.getStringList("FavoriteApps")!;
+    }
 
-    prefs.then((value) {
-      if (value.containsKey("FavoriteApps")) {
-        favoriteApps = value.getStringList("FavoriteApps")!;
-        if (favoriteGroups.contains("FavoriteGroups")) {
-          favoriteGroups = value.getStringList("FavoriteGroups")!;
-        }
+    List<AppInfo> listAppInfo =
+        await InstalledApps.getInstalledApps(true, true);
+
+    for (AppInfo appInfo in listAppInfo) {
+      if (favoriteApps.contains(appInfo.name)) {
+        listInstalledFavs.add(appInfo);
       }
-      futureListAppInfo.then((thenInfo) {
-        for (AppInfo appInfo in thenInfo) {
-          if (favoriteApps.contains(appInfo.name)) {
-            //dev.log("Hittade " + appInfo.name!);
-            listInstalledFavs.add(appInfo);
-          }
-        }
-      });
-    });
+    }
+
+    return listInstalledFavs;
+  }
+
+  Widget body() {
+    Future<List<AppInfo>> futureListAppInfo = futureListInstalledFavs();
 
     return Center(
-      //child: Column(
       child: ListView(
-        //mainAxisAlignment: MainAxisAlignment.center,
-
         children: [
           FutureBuilder(
               future: futureListAppInfo,
               builder: (context, futureData) {
                 if (futureData.hasData) {
-                  return createWidgetFromListOfApps(listInstalledFavs);
+                  return createWidgetFromListOfApps(futureData.data);
                 } else {
                   return const Text("Loading...");
                 }
