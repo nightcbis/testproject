@@ -17,6 +17,7 @@ class Homescreen extends StatefulWidget {
 class _HomescreenState extends State<Homescreen> {
   OverlayEntry? appInfoOverlayEntry;
   List<String> favoriteApps = [];
+  List<String> favoriteGroups = [];
 
   Widget app(String name, context) {
     return Padding(
@@ -140,9 +141,18 @@ class _HomescreenState extends State<Homescreen> {
     return false;
   }
 
-  List<String> listAllFavoriteGroups() {
-    List<String> favoriteGroups = [];
+  void createFavoriteGroup(String group) {
+    if (favoriteGroups.contains(group)) return;
 
+    favoriteGroups.add(group);
+
+    Future<SharedPreferences> futurePrefs = SharedPreferences.getInstance();
+    futurePrefs.then((prefs) {
+      prefs.setStringList("FavoriteGroups", favoriteGroups);
+    });
+  }
+
+  List<String> listAllFavoriteGroups() {
     Future<SharedPreferences> futurePrefs = SharedPreferences.getInstance();
 
     futurePrefs.then((prefs) {
@@ -152,7 +162,19 @@ class _HomescreenState extends State<Homescreen> {
     });
 
     dev.log(favoriteGroups.toString());
+
     return favoriteGroups;
+  }
+
+  void deleteFavoriteGroup(String group) {
+    if (!favoriteGroups.contains(group)) return;
+
+    favoriteGroups.remove(group);
+
+    Future<SharedPreferences> futurePrefs = SharedPreferences.getInstance();
+    futurePrefs.then((prefs) {
+      prefs.setStringList("FavoriteGroups", favoriteGroups);
+    });
   }
 
   Widget body() {
@@ -165,6 +187,9 @@ class _HomescreenState extends State<Homescreen> {
     prefs.then((value) {
       if (value.containsKey("FavoriteApps")) {
         favoriteApps = value.getStringList("FavoriteApps")!;
+        if (favoriteGroups.contains("FavoriteGroups")) {
+          favoriteGroups = value.getStringList("FavoriteGroups")!;
+        }
       }
       futureListAppInfo.then((thenInfo) {
         for (AppInfo appInfo in thenInfo) {
@@ -191,6 +216,41 @@ class _HomescreenState extends State<Homescreen> {
                   return const Text("Loading...");
                 }
               }),
+          FutureBuilder(
+              future: futureListAppInfo,
+              builder: (context, futureData) {
+                return Column(children: [
+                  Text(favoriteGroups.toString()),
+                  Text(favoriteApps.toString())
+                ]);
+              }),
+
+          TextButton(
+              onPressed: () {
+                setState(() {
+                  createFavoriteGroup("Social");
+                });
+                ("Social");
+              },
+              onLongPress: () {
+                setState(() {
+                  createFavoriteGroup("Media");
+                });
+              },
+              child: const Text("Create Social/Media")),
+          TextButton(
+              onPressed: () {
+                setState(() {
+                  deleteFavoriteGroup("Social");
+                });
+                ("Social");
+              },
+              onLongPress: () {
+                setState(() {
+                  deleteFavoriteGroup("Media");
+                });
+              },
+              child: const Text("Delete Social/Media"))
           //searchField(),
         ],
       ),
