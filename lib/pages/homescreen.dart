@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:testproject/Settings/Settings.dart';
 import '../drawers/homescreen_drawer.dart';
 import '../appbars/appbar_widget.dart';
 import '../overlays/appinfo_overlay.dart';
@@ -14,7 +15,7 @@ class Homescreen extends StatefulWidget {
   State<Homescreen> createState() => _HomescreenState();
 }
 
-class _HomescreenState extends State<Homescreen> {
+class _HomescreenState extends State<Homescreen> with settings {
   OverlayEntry? appInfoOverlayEntry;
   List<String> favoriteApps = [];
   List<String> favoriteGroups = [];
